@@ -1,48 +1,31 @@
 package tests;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
+import base.BaseTest;
 import org.testng.Assert;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import pages.LoginPage;
 
-import java.time.Duration;
-
-public class LoginTest {
-
-    WebDriver driver;
-    WebDriverWait wait;
-
-    @BeforeMethod
-    public void setup() {
-        driver = new ChromeDriver();
-        driver.manage().window().maximize();
-        driver.get("https://the-internet.herokuapp.com/login");
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-    }
+public class LoginTest extends BaseTest {
 
     @Test
     public void validLoginTest() {
-        driver.findElement(By.id("username")).sendKeys("tomsmith");
-        driver.findElement(By.id("password")).sendKeys("SuperSecretPassword!");
-        driver.findElement(By.cssSelector("button[type='submit']")).click();
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.login("tomsmith", "SuperSecretPassword!");
 
-        // Wait for success message
-        String successMsg = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id("flash"))
-        ).getText();
-
-        // Assertion
-        Assert.assertTrue(successMsg.contains("You logged into a secure area"),
-                "Login was not successful");
+        Assert.assertTrue(
+                loginPage.getMessage().contains("You logged into a secure area"),
+                "Valid login failed"
+        );
     }
 
-    @AfterMethod
-    public void tearDown() {
-        driver.quit();
+    @Test
+    public void invalidLoginTest() {
+        LoginPage loginPage = new LoginPage(driver);
+        loginPage.login("wronguser", "wrongpass");
+
+        Assert.assertTrue(
+                loginPage.getMessage().contains("Your username is invalid"),
+                "Invalid login error not shown"
+        );
     }
 }
