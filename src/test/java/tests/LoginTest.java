@@ -1,32 +1,44 @@
 package tests;
 
+import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import org.testng.Assert;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.time.Duration;
+
 public class LoginTest {
 
     WebDriver driver;
+    WebDriverWait wait;
 
     @BeforeMethod
     public void setup() {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
         driver.get("https://the-internet.herokuapp.com/login");
+        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
     }
 
     @Test
     public void validLoginTest() {
-        driver.findElement(org.openqa.selenium.By.id("username"))
-              .sendKeys("tomsmith");
+        driver.findElement(By.id("username")).sendKeys("tomsmith");
+        driver.findElement(By.id("password")).sendKeys("SuperSecretPassword!");
+        driver.findElement(By.cssSelector("button[type='submit']")).click();
 
-        driver.findElement(org.openqa.selenium.By.id("password"))
-              .sendKeys("SuperSecretPassword!");
+        // Wait for success message
+        String successMsg = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(By.id("flash"))
+        ).getText();
 
-        driver.findElement(org.openqa.selenium.By.cssSelector("button[type='submit']"))
-              .click();
+        // Assertion
+        Assert.assertTrue(successMsg.contains("You logged into a secure area"),
+                "Login was not successful");
     }
 
     @AfterMethod
